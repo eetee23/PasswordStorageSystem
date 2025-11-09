@@ -60,7 +60,7 @@ map<string, string> search_by_id(string input) {
     if (exit != SQLITE_OK) {
         std::cerr << "Failed to set key when creating DB." << std::endl;
         sqlite3_close(db);
-        return;
+        return {};
     }
 
     string check_by_id = "SELECT * FROM passwords WHERE ID = ?;";
@@ -125,7 +125,7 @@ map<string, string> search_by_name(string input) {
     if (exit != SQLITE_OK) {
         std::cerr << "Failed to set key when creating DB." << std::endl;
         sqlite3_close(db);
-        return;
+        return {};
     }
 
     string check_by_id = "SELECT * FROM passwords WHERE NAME = ?;";
