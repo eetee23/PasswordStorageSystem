@@ -15,6 +15,8 @@
 
 using namespace std;
 
+const char *db_key = "mysecretkey";
+
 // prototype
 void create_credentials_to_db();
 
@@ -51,6 +53,14 @@ map<string, string> search_by_id(string input) {
 
     if (exit != SQLITE_OK) {
         cerr << "ERROR opening database for password id search" << sqlite3_errmsg(db) << endl;
+    }
+
+    exit = sqlite3_exec(db, ("PRAGMA key = '" + std::string(db_key) + "';").c_str(), nullptr, nullptr, nullptr);
+
+    if (exit != SQLITE_OK) {
+        std::cerr << "Failed to set key when creating DB." << std::endl;
+        sqlite3_close(db);
+        return;
     }
 
     string check_by_id = "SELECT * FROM passwords WHERE ID = ?;";
@@ -110,6 +120,14 @@ map<string, string> search_by_name(string input) {
         cerr << "ERROR opening database for password name search" << sqlite3_errmsg(db) << endl;
     }
 
+    exit = sqlite3_exec(db, ("PRAGMA key = '" + std::string(db_key) + "';").c_str(), nullptr, nullptr, nullptr);
+
+    if (exit != SQLITE_OK) {
+        std::cerr << "Failed to set key when creating DB." << std::endl;
+        sqlite3_close(db);
+        return;
+    }
+
     string check_by_id = "SELECT * FROM passwords WHERE NAME = ?;";
     sqlite3_stmt* stmt;
     
@@ -143,7 +161,7 @@ map<string, string> search_by_name(string input) {
             cout << "id: " << fetched_id << " name: " << name << endl;
         } else if (exit == SQLITE_DONE) {
             if (i == 0) {
-                cout << "Password name now found" << endl;
+                cout << "Password name not found" << endl;
             }
             else if (i > 1) {
                 int id;
@@ -230,6 +248,14 @@ bool add_password_to_database(string tag, string password) {
         return false;
     }
 
+    exit = sqlite3_exec(db, ("PRAGMA key = '" + std::string(db_key) + "';").c_str(), nullptr, nullptr, nullptr);
+
+    if (exit != SQLITE_OK) {
+        std::cerr << "Failed to set key when creating DB." << std::endl;
+        sqlite3_close(db);
+        return 1;
+    }
+
     string password_insert ("INSERT INTO PASSWORDS (NAME, PASSWORD) VALUES(?, ?);");
     sqlite3_stmt* stmt;
 
@@ -286,6 +312,15 @@ int sqlite_data_base_creation() {
     } else {
         cout << "Opened SQLite database successfully!\n";
     }
+
+    exit = sqlite3_exec(db, ("PRAGMA key = '" + std::string(db_key) + "';").c_str(), nullptr, nullptr, nullptr);
+
+    if (exit != SQLITE_OK) {
+        std::cerr << "Failed to set key when creating DB." << std::endl;
+        sqlite3_close(db);
+        return 1;
+    }
+
     string db_password_table =  "CREATE TABLE IF NOT EXISTS PASSWORDS(ID INTEGER PRIMARY KEY AUTOINCREMENT," \
                                 "NAME STRING NOT NULL," \
                                 "PASSWORD STRING NOT NULL)";
@@ -349,6 +384,14 @@ bool check_credentials_from_database(string& out_username, string& out_password)
         return false;
     }
 
+    exit = sqlite3_exec(db, ("PRAGMA key = '" + std::string(db_key) + "';").c_str(), nullptr, nullptr, nullptr);
+
+    if (exit != SQLITE_OK) {
+        std::cerr << "Failed to set key when creating DB." << std::endl;
+        sqlite3_close(db);
+        return 1;
+    }
+
     string check_credentials = "SELECT * FROM credentials WHERE TABLE_NAME = 'main'";
     char* message_error;
     exit = sqlite3_exec(db, check_credentials.c_str(), callback, &result_rows, &message_error);
@@ -392,6 +435,14 @@ void create_credentials_to_db() {
 
     if (exit != SQLITE_OK) {
         cerr << "ERROR opening database for  creating credentials" << sqlite3_errmsg(db) << endl;
+        return;
+    }
+
+    exit = sqlite3_exec(db, ("PRAGMA key = '" + std::string(db_key) + "';").c_str(), nullptr, nullptr, nullptr);
+
+    if (exit != SQLITE_OK) {
+        std::cerr << "Failed to set key when creating DB." << std::endl;
+        sqlite3_close(db);
         return;
     }
 
@@ -446,18 +497,16 @@ void get_password() {
 
     if (str_value != true) {
         result = search_by_id(search_input);
-        if (!result.empty()) {
-            auto pw_entry = result.find("password");
-            string password = pw_entry->second;
-            copy_to_clipboard(password);
-        }
      } else {
         result = search_by_name(search_input);
-        if (!result.empty()) {
-            auto pw_entry = result.find("password");
-            string password = pw_entry->second;
-            copy_to_clipboard(password);
-        }
+    }
+    if (!result.empty()) {
+        auto id_entry = result.find("id");
+        auto name_entry = result.find("name");
+        cout << "id: " << id_entry->second << " name: " << name_entry->second << endl;
+        auto pw_entry = result.find("password");
+        string password = pw_entry->second;
+        copy_to_clipboard(password);
     }
 }
 
@@ -469,6 +518,14 @@ void delete_entry(int id) {
 
     if (exit != SQLITE_OK) {
         cerr << "ERROR opening database for deleting passwords" << sqlite3_errmsg(db) << endl;
+        return;
+    }
+
+    exit = sqlite3_exec(db, ("PRAGMA key = '" + std::string(db_key) + "';").c_str(), nullptr, nullptr, nullptr);
+
+    if (exit != SQLITE_OK) {
+        std::cerr << "Failed to set key when creating DB." << std::endl;
+        sqlite3_close(db);
         return;
     }
 
@@ -537,6 +594,14 @@ void browse_passwords() {
         return;
     }
 
+    exit = sqlite3_exec(db, ("PRAGMA key = '" + std::string(db_key) + "';").c_str(), nullptr, nullptr, nullptr);
+
+    if (exit != SQLITE_OK) {
+        std::cerr << "Failed to set key when creating DB." << std::endl;
+        sqlite3_close(db);
+        return;
+    }
+
     string get_passwords = "SELECT * from passwords;";
 
     exit = sqlite3_exec(db, get_passwords.c_str(), callback, &result_rows, &message_error);
@@ -572,6 +637,14 @@ void edit_db_entry(map<string, string> entry) {
 
     if(exit != SQLITE_OK) {
         cerr << "ERROR opening database for entry editing" << sqlite3_errmsg(db) << endl;
+        return;
+    }
+
+    exit = sqlite3_exec(db, ("PRAGMA key = '" + std::string(db_key) + "';").c_str(), nullptr, nullptr, nullptr);
+
+    if (exit != SQLITE_OK) {
+        std::cerr << "Failed to set key when creating DB." << std::endl;
+        sqlite3_close(db);
         return;
     }
 
@@ -674,6 +747,8 @@ map<string, string>edit_entry_fields(map<string, string> entry) {
             case 3:
                 i = 99;
                 break;
+            default:
+                cout << "Invalid input: "<< input << endl;
         }
     }
     return result;
@@ -696,11 +771,13 @@ void edit_entry() {
 
     if (!val_string) {
         search_result = search_by_id(input);
-        if (!search_result.empty()) {
-            edited_entry = edit_entry_fields(search_result);
-            if (!edited_entry.empty()) {
-                edit_db_entry(edited_entry);
-            }
+    } else {
+        search_result = search_by_name(input);
+    }
+    if (!search_result.empty()) {
+        edited_entry = edit_entry_fields(search_result);
+        if (!edited_entry.empty()) {
+            edit_db_entry(edited_entry);
         }
     }
 }
