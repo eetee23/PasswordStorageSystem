@@ -17,9 +17,15 @@ RUN wget https://github.com/sqlcipher/sqlcipher/archive/refs/tags/v4.5.0.tar.gz 
     make && make install && \
     echo "/usr/local/lib" > /etc/ld.so.conf.d/sqlcipher.conf && ldconfig
 
-COPY ./main.cpp .
-COPY ./database .
+COPY ./src ./src
+COPY ./database ./database
 
-RUN g++ main.cpp -o PasswordGenerator -lsqlcipher -lcrypto -lpthread
+WORKDIR /app/src
+RUN g++ -std=c++17 \
+    main.cpp db_creation.cpp db_modification.cpp db_view.cpp utils.cpp \
+    -Iinclude \
+    -lsqlcipher -lcrypto -lpthread \
+    -o /app/password_manager
 
-CMD ["./PasswordGenerator"]
+WORKDIR /app
+CMD ["./password_manager"]
