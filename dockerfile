@@ -25,7 +25,7 @@ RUN g++ -std=c++17 \
     main.cpp db_creation.cpp db_modification.cpp db_view.cpp utils.cpp \
     -Iinclude \
     -lsqlcipher -lcrypto -lpthread \
-    -o /app/password_manager
+    -o /app/password_storage_system
 
 WORKDIR /app
-CMD ["./password_manager"]
+CMD ["./password_storage_system"]
