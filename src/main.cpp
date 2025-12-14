@@ -16,7 +16,7 @@
 #include <db_creation.h>
 #include <globals.h>
 #include <utils.h>
-#include <sqlite3.h>
+#include <sqlcipher/sqlite3.h>
 
 using namespace std;
 
